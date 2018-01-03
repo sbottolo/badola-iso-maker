@@ -1,0 +1,9 @@
+version: "3.2"
+
+services:
+  badola_isomaker:
+    container_name: badola_isomaker
+    build:
+      context: .
+    volumes:
+      - ./src:/app

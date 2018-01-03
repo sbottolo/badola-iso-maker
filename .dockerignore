@@ -1,0 +1,4 @@
+# docker ignore file
+
+src/.iso/*
+src/.iso_files
