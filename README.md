@@ -31,3 +31,17 @@ docker-compose run badola_isomaker bash
 bash# sudo su
 /app# ./badola-iso-maker.sh
 ```
+
+## Run with parameters
+
+```bash
+./badola-iso-maker.sh \
+ -seedfile autoinstall.cfg \
+ -osarch amd64 \
+ -osver 16.04 \
+ -hostname unassigned-hostname \
+ -domain unassigned-domain \
+ -timezone Etc/UTC \
+ -username develop \
+ -password develop
+```

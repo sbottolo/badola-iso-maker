@@ -32,48 +32,110 @@ build-iso() {
 
 	claimMe
 
+	while [ -n "$1" ]
+ 	# while loop starts
+	do
+		case "$1" in
+		-osarch) osarch="$2"
+			shift;;
+		-osver) osver="$2"
+			shift;;
+		-seedfile) seed_file="$2"
+			shift;;
+		-hostname) hostname="$2"
+			shift;;
+		-domain) domain="$2"
+			shift;;
+		-timezone) timezone="$2"
+			shift;;
+		-username) username="$2"
+			shift;;
+		-password) password="$2"
+			shift;;
+
+		# The double dash makes them parameters
+		--) shift
+		break;;
+		*) echo "Option $1 not recognized"
+		esac
+			shift
+	done
+
 	# get os architecture
-	osarch=($(get-architecture))
+	if [ -z $osarch ]; then
+		osarch=($(get-architecture))
+	fi
 
 	# get ubuntu releases
-	all=($(wget -O- releases.ubuntu.com -q | perl -ne '/Ubuntu (\d+.\d+)/ && print "$1\n"' | sort -Vu))
+	if [ -z $osver ]; then
+		all=($(wget -O- releases.ubuntu.com -q | perl -ne '/Ubuntu (\d+.\d+)/ && print "$1\n"' | sort -Vu))
 
-	# choose and check release
-	if [ "$2" == latest ]; then
-		iso_url=$(ubuntu-release $osarch ${all[-1]})
-	else if [ -z "$*" ]; then
-		echo releases.ubuntu.com $osarch has ${all[*]}
-		read -p $'\e[44mChoose version\e[0m: ' -e -i "${all[-1]}" v
-		[ "$v" ] || v=${all[-1]}
-		iso_url=$(ubuntu-release $osarch $v)
-	else if expr match "${2}" "^http" > /dev/null; then
-		iso_url="$2"
-	else if expr match "$2" "[0-9]\+.[0-9]\+$" > /dev/null; then
-			iso_url=$(ubuntu-release $1 $2)
-		else
+		# choose and check release
+		if [ "$2" == latest ]; then
+			iso_url=$(ubuntu-release $osarch ${all[-1]})
+		else if [ -z "$*" ]; then
+			echo releases.ubuntu.com $osarch has ${all[*]}
+			read -p $'\e[44mChoose version\e[0m: ' -e -i "${all[-1]}" v
+			[ "$v" ] || v=${all[-1]}
+			iso_url=$(ubuntu-release $osarch $v)
+		else if expr match "${2}" "^http" > /dev/null; then
 			iso_url="$2"
+		else if expr match "$2" "[0-9]\+.[0-9]\+$" > /dev/null; then
+				iso_url=$(ubuntu-release $1 $2)
+			else
+				iso_url="$2"
+			fi
 		fi
-	fi
-	fi
+		fi
+		fi
+	else
+		iso_url=$(ubuntu-release $osarch $osver)
 	fi
 
 	# ask the user questions about preferences
-	
-	read -ep $'\e[44mEnter your preferred seed file\e[0m: ' -i "autoinstall.cfg" seed_file
-	read -ep $'\e[44mEnter your preferred hostname\e[0m: ' -i "ubuntu" hostname
-	read -ep $'\e[44mEnter your preferred domain\e[0m: ' -i "ubuntu.local" domain
-	read -ep $'\e[44mEnter your preferred timezone\e[0m: ' -i "Etc/UTC" timezone
-	read -ep $'\e[44mEnter your preferred username\e[0m: ' -i "develop" username
-	read -sp $'\e[44mEnter your preferred password\e[0m: ' password
-	printf "\n"
-	read -sp $'\e[44mConfirm your preferred password\e[0m: ' password2
-
-	# check if the passwords match to prevent headaches
-	if [[ "$password" != "$password2" ]]; then
-		echo -e "\e[41mPasswords do not match; please restart the script and try again\e[0m"
-		echo
-		exit
+	if [ -z $seed_file ]; then
+		read -ep $'\e[44mEnter your preferred seed file\e[0m: ' -i "autoinstall.cfg" seed_file
 	fi
+
+	if [ -z $hostname ]; then
+		read -ep $'\e[44mEnter your preferred hostname\e[0m: ' -i "ubuntu" hostname
+	fi
+
+	if [ -z $domain ]; then
+		read -ep $'\e[44mEnter your preferred domain\e[0m: ' -i "ubuntu.local" domain
+	fi
+
+	if [ -z $timezone ]; then
+		read -ep $'\e[44mEnter your preferred timezone\e[0m: ' -i "Etc/UTC" timezone
+	fi
+
+	if [ -z $username ]; then
+		read -ep $'\e[44mEnter your preferred username\e[0m: ' -i "develop" username
+	fi
+
+	if [ -z $password ]; then
+		read -sp $'\e[44mEnter your preferred password\e[0m: ' password
+		printf "\n"
+		read -sp $'\e[44mConfirm your preferred password\e[0m: ' password2
+
+		# check if the passwords match to prevent headaches
+		if [[ "$password" != "$password2" ]]; then
+			echo -e "\e[41mPasswords do not match; please restart the script and try again\e[0m"
+			echo
+			exit
+		fi
+	fi
+
+	# summary
+	echo "> os architecture: $osarch"
+	echo "> os version: $osver"
+	echo "> iso url: $iso_url"
+	echo "> seed_file: $seed_file"
+	echo "> hostname: $hostname"
+	echo "> domain: $domain"
+	echo "> timezone: $timezone"
+	echo "> username: $username"
+	echo "> password: $password"
 
 	# generate the password hash
 	pwdhash=$(mkpasswd -s -m sha-512 $password)
