@@ -52,6 +52,8 @@ build-iso() {
 			shift;;
 		-password) password="$2"
 			shift;;
+		-filename) filename="$2"
+			shift;;
 
 		# The double dash makes them parameters
 		--) shift
@@ -94,7 +96,7 @@ build-iso() {
 
 	# ask the user questions about preferences
 	if [ -z $seed_file ]; then
-		read -ep $'\e[44mEnter your preferred seed file\e[0m: ' -i "autoinstall.cfg" seed_file
+		read -ep $'\e[44mEnter your preferred seed file\e[0m: ' -i "badola.seed" seed_file
 	fi
 
 	if [ -z $hostname ]; then
@@ -126,6 +128,10 @@ build-iso() {
 		fi
 	fi
 
+	if [ -z $filename ]; then
+		filename="ubuntu-$osver-$osarch-$hostname.iso"
+	fi
+
 	# summary
 	echo "> os architecture: $osarch"
 	echo "> os version: $osver"
@@ -136,11 +142,11 @@ build-iso() {
 	echo "> timezone: $timezone"
 	echo "> username: $username"
 	echo "> password: $password"
+	echo "> output file: $filename"
 
 	# generate the password hash
 	pwdhash=$(mkpasswd -s -m sha-512 $password)
 
-	
 	# check if iso is exists or it must be downloaded
 	iso_base=$(basename $iso_url)
 	base=$(basename $iso_url .iso)
@@ -183,7 +189,24 @@ build-iso() {
 	sed -i "s@{{timezone}}@$timezone@g" "$iso_files_path/preseed/$seed_file"
 	sed -i "s@{{username}}@$username@g" "$iso_files_path/preseed/$seed_file"
 	sed -i "s@{{pwdhash}}@$pwdhash@g" "$iso_files_path/preseed/$seed_file"
-	
+
+	# set lang for installation menu
+	echo en >"$iso_files_path/isolinux/lang"
+
+	# workaround for Ubuntu >= 16.04
+	#taken from https://github.com/fries/prepare-ubuntu-unattended-install-iso/blob/master/make.sh
+	sed -i -r 's/timeout\s+[0-9]+/timeout 1/g' "$iso_files_path/isolinux/isolinux.cfg"
+
+	# copy ks.cfg
+	echo -e "\e[44mCopy ks.cfg\e[0m"
+	cp -rf "$PWD/conf/ubuntu/kickstart/badola_ks.cfg" "$iso_files_path/ks.cfg"
+
+	# replace ks.cfg
+	echo -e "\e[44mUpdate ks.cfg\e[0m"
+	sed -i "s@{{timezone}}@$timezone@g" "$iso_files_path/ks.cfg"
+	sed -i "s@{{username}}@$username@g" "$iso_files_path/ks.cfg"
+	sed -i "s@{{pwdhash}}@$pwdhash@g" "$iso_files_path/ks.cfg"
+
 	# replace grub.cfg
 	echo -e "\e[44mReplace grub.cfg\e[0m"
 	cp -rf "$PWD/conf/ubuntu/boot/grub/grub.cfg" "$iso_files_path/boot/grub/"
@@ -204,20 +227,20 @@ build-iso() {
 	dd if="$PWD/.iso/$iso_base" bs=512 count=1 of="$iso_files_path/isolinux/isohdpfx.bin"
 
 	# build image
-	iso_files_path="$PWD/output"
-	if [ -d "$iso_files_path" ]; then
-		chmod -R 777 "$iso_files_path"
-		rm -r "$iso_files_path/*"
-	else
-		mkdir "$iso_files_path"
-		chmod -R 777 "$iso_files_path"
-	fi
+	#iso_files_path="$PWD/output"
+	#if [ -d "$iso_files_path" ]; then
+	#	chmod -R 777 "$iso_files_path"
+	#	rm -r "$iso_files_path/*"
+	#else
+	#	mkdir "$iso_files_path"
+	#	chmod -R 777 "$iso_files_path"
+	#fi
 	
 	isolinux_mbr="isolinux/isohdpfx.bin"
 	isolinux_cat="isolinux/boot.cat"
 	isolinux_bin="isolinux/isolinux.bin"
 	boot_efi_img="boot/grub/efi.img"
-	target_iso_path="../output/custom-ubuntu.iso"
+	target_iso_path="../output/$filename.iso"
 	source_iso_path="."
 
 	cd "$PWD/.iso_files" \
@@ -263,7 +286,7 @@ else
 		eval "$*" # execute arguments
 	else
 		if [ `which "$0"` = "$SHELL" ]; then
-			echo Function build-iso is loaded into the shell environment
+			echo "Function build-iso is loaded into the shell environment"
 		fi
 	fi
 fi

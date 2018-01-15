@@ -36,7 +36,7 @@ bash# sudo su
 
 ```bash
 ./badola-iso-maker.sh \
- -seedfile autoinstall.cfg \
+ -seedfile ks.seed \
  -osarch amd64 \
  -osver 16.04 \
  -hostname unassigned-hostname \

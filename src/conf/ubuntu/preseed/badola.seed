@@ -48,7 +48,7 @@ tasksel tasksel/first                                       multiselect Basic Ub
 d-i pkgsel/upgrade                                          select      safe-upgrade
 d-i pkgsel/update-policy                                    select      none
 d-i pkgsel/updatedb                                         boolean     true
-d-i pkgsel/include                                          string      openssh-server apt-transport-https
+d-i pkgsel/include                                          string      ca-certificates openssl openssh-server apt-transport-https vim
 
 # user account setup
 d-i passwd/root-login                                       boolean     true
@@ -100,6 +100,7 @@ d-i debian-installer/exit/halt                              boolean     false
 d-i debian-installer/exit/poweroff                          boolean     false
 
 # late command
-d-i	preseed/late_command	string	\
-        sed -i '/^PermitRootLogin/c PermitRootLogin yes' /target/etc/ssh/sshd_config ; \
-		in-target update-grub
+# d-i	preseed/late_command	string	\
+#        sed -i '/^PermitRootLogin/c PermitRootLogin yes' /target/etc/ssh/sshd_config ; \
+#		in-target update-grub
+
