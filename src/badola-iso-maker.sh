@@ -1,6 +1,6 @@
 #!/bin/bash
 
-claimMe() 
+claimMe()
 {
 cat<<EOF
 ██████╗  █████╗ ██████╗  ██████╗ ██╗      █████╗     ██╗███████╗ ██████╗     ███╗   ███╗ █████╗ ██╗  ██╗███████╗██████╗ 
@@ -30,6 +30,7 @@ ubuntu-release()
 
 build-iso() {
 
+	echo
 	claimMe
 
 	while [ -n "$1" ]
