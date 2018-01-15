@@ -130,7 +130,7 @@ build-iso() {
 	fi
 
 	if [ -z $filename ]; then
-		filename="ubuntu-$osver-$osarch-$hostname.iso"
+		filename="ubuntu-$osver-$osarch-$hostname"
 	fi
 
 	# summary
