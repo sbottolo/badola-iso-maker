@@ -1,0 +1,12 @@
+{
+    "name": "sbottolo/badola-iso-maker",
+    "description": "Unattended Ubuntu ISO maker",
+    "type": "project",
+    "require": {},
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
