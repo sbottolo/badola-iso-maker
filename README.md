@@ -12,7 +12,7 @@
 Linux / Windows:
 
 ```bash
-git clone https://pmstar@bitbucket.org/starspa/bash-iso-maker.git
+git clone git@github.com:sbottolo/badola-iso-maker.git
 ```
 
 ## Bash Usage
